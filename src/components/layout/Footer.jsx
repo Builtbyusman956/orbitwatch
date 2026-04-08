@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { RiRocketLine, RiGithubLine, FaLinkedin } from "react-icons/ri";
+import { RiRocketLine, RiGithubLine } from "react-icons/ri";
 import { FaLinkedin } from "react-icons/fa";
 
 const footerLinks = [
