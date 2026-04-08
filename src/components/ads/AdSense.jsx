@@ -1,38 +1,23 @@
-import { useEffect, useRef } from "react";
+// src/components/AdSenseScript.jsx
+import { useEffect } from "react";
 
-const AdSense = ({ 
-  adSlot, 
-  adFormat = "auto", 
-  style = {}, 
-  className = "" 
-}) => {
-  const adRef = useRef(null);
-
+const AdSenseScript = () => {
   useEffect(() => {
-    // Only run on client side
-    if (typeof window === "undefined") return;
-    
-    // Check if adsbygoogle is loaded
-    if (window.adsbygoogle && adRef.current) {
-      try {
-        window.adsbygoogle.push({});
-      } catch (e) {
-        console.error("AdSense error:", e);
+    const script = document.createElement("script");
+    script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4196464010351609";
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    // ❌ No data-adsense attribute here
+    document.head.appendChild(script);
+
+    return () => {
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
       }
-    }
+    };
   }, []);
 
-  return (
-    <ins
-      ref={adRef}
-      className={`adsbygoogle ${className}`}
-      style={{ display: "block", ...style }}
-      data-ad-client={import.meta.env.VITE_ADSENSE_CLIENT_ID}
-      data-ad-slot={adSlot}
-      data-ad-format={adFormat}
-      data-full-width-responsive="true"
-    />
-  );
+  return null;
 };
 
-export default AdSense;
+export default AdSenseScript;
