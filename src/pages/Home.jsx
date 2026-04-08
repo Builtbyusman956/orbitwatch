@@ -13,7 +13,9 @@ import {
   RiCalendarLine,
   RiMapPinLine,
   RiAlarmWarningLine,
-  RiExternalLinkLine
+  RiExternalLinkLine,
+  RiCalendarEventLine,
+  RiImageLine
 } from "react-icons/ri";
 import Loader from "../components/ui/Loader";
 
@@ -24,15 +26,43 @@ const Home = () => {
   const { countdown } = useCountdown(launch?.date_unix);
 
   const hazardousAsteroids = asteroids
-    ?.filter((neo) => neo.is_potentially_hazardous_asteroid)
+    ?.filter((neo) => neo?.is_potentially_hazardous_asteroid)
     ?.slice(0, 3) || [];
 
   const isLoading = apodLoading || launchLoading || neoLoading;
+
+  // Debug logging - remove in production
+  console.log("Home render:", { 
+    apod: apod?.title, 
+    launch: launch?.name, 
+    asteroidsCount: asteroids?.length,
+    apodError: apodError?.message,
+    launchError: launchError?.message 
+  });
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <Loader text="Loading space data..." />
+      </div>
+    );
+  }
+
+  // Show error state if all APIs failed
+  if (apodError && launchError && neoError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center max-w-md px-6">
+          <RiRocketLine className="mx-auto text-6xl text-gray-300 mb-4" />
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Connection Issue</h2>
+          <p className="text-gray-500 mb-4">Unable to load space data. This might be due to API rate limits or network issues.</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
@@ -78,7 +108,7 @@ const Home = () => {
                 )}
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex gap-3 flex-wrap">
                 <Link 
                   to="/launches"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl font-semibold transition-all"
@@ -86,7 +116,7 @@ const Home = () => {
                   View All Launches
                   <RiArrowRightLine />
                 </Link>
-                {launch?.links?.webcast && (
+                {launch?.links?.webcast && !launch?.upcoming && (
                   <a
                     href={launch.links.webcast}
                     target="_blank"
@@ -126,19 +156,38 @@ const Home = () => {
           
           {/* APOD Card */}
           <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700">
-            <div className="relative h-64 md:h-80 overflow-hidden group">
-              {apod?.url ? (
+            <div className="relative h-64 md:h-80 overflow-hidden group bg-gray-900">
+              {apod?.url && apod?.media_type === "image" ? (
                 <img 
                   src={apod.url} 
                   alt={apod.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
                 />
-              ) : (
-                <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                  <p className="text-gray-500">No image available</p>
-                </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              ) : null}
+              
+              {/* Fallback / Error State */}
+              <div 
+                className={`absolute inset-0 flex flex-col items-center justify-center text-white bg-gradient-to-br from-purple-900 to-blue-900 ${apod?.url && apod?.media_type === "image" ? 'hidden' : 'flex'}`}
+              >
+                {apodError ? (
+                  <>
+                    <RiImageLine className="text-5xl mb-3 opacity-60" />
+                    <p className="text-sm font-medium">Image temporarily unavailable</p>
+                    <p className="text-xs opacity-60 mt-1">NASA API limit reached</p>
+                  </>
+                ) : (
+                  <>
+                    <RiFireLine className="text-5xl mb-3 opacity-60" />
+                    <p className="text-sm font-medium">Astronomy Picture of the Day</p>
+                  </>
+                )}
+              </div>
+
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
                 <div className="flex items-center gap-2 mb-2">
                   <RiFireLine className="text-orange-400" />
@@ -146,13 +195,13 @@ const Home = () => {
                     Astronomy Picture of the Day
                   </span>
                 </div>
-                <h2 className="text-2xl font-bold mb-1">{apod?.title || "Loading..."}</h2>
-                <p className="text-sm text-gray-300">{apod?.date}</p>
+                <h2 className="text-2xl font-bold mb-1">{apod?.title || "Discover the Cosmos"}</h2>
+                <p className="text-sm text-gray-300">{apod?.date || new Date().toLocaleDateString()}</p>
               </div>
             </div>
             <div className="p-6">
               <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed line-clamp-3">
-                {apod?.explanation || "Loading explanation..."}
+                {apod?.explanation || "NASA's Astronomy Picture of the Day showcases our universe through stunning imagery and detailed explanations from professional astronomers."}
               </p>
               <Link 
                 to="/apod"
@@ -176,7 +225,12 @@ const Home = () => {
               </div>
             </div>
 
-            {hazardousAsteroids.length === 0 ? (
+            {neoError ? (
+              <div className="text-center py-8 text-gray-400">
+                <p className="text-sm">Tracking data unavailable</p>
+                <p className="text-xs mt-1">Please refresh later</p>
+              </div>
+            ) : hazardousAsteroids.length === 0 ? (
               <div className="text-center py-8 text-gray-400">
                 <p className="text-sm">No hazardous asteroids detected</p>
                 <p className="text-xs mt-1">Earth is safe! 🌍</p>
@@ -190,7 +244,7 @@ const Home = () => {
                   >
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
-                        {neo.name?.replace(/[()]/g, "") || "Unknown"}
+                        {neo.name?.replace(/[()]/g, "") || "Unknown Object"}
                       </h4>
                       <span className="text-xs px-2 py-1 bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200 rounded-full font-medium">
                         {(neo.estimated_diameter?.kilometers?.estimated_diameter_max || 0).toFixed(2)} km
