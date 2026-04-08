@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { RiRocketLine, RiGithubLine, RiTwitterLine } from "react-icons/ri";
+import { RiRocketLine, RiGithubLine, FaLinkedin } from "react-icons/ri";
 
 const footerLinks = [
   { path: "/launches", label: "Launches" },
@@ -13,8 +13,8 @@ const dataSources = [
 ];
 
 const socialLinks = [
-  { href: "https://github.com", icon: RiGithubLine, label: "GitHub" },
-  { href: "https://twitter.com", icon: RiTwitterLine, label: "Twitter" },
+  { href: "https://github.com/Builtbyusman956", icon: RiGithubLine, label: "GitHub" },
+  { href: "https://www.linkedin.com/in/usman-akangbe-b347423b4/", icon: FaLinkedin, label: "Linkedln" },
 ];
 
 const Footer = () => {
@@ -88,7 +88,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-gray-400 dark:text-gray-600">
-            © {currentYear} OrbitWatch. Built with React & Tailwind CSS
+            © {currentYear} OrbitWatch. Built with React 
           </p>
           
           <div className="flex items-center gap-3">
