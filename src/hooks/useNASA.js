@@ -10,9 +10,11 @@ export const useAPOD = (date = null) => {
     const fetch = async () => {
       try {
         setLoading(true);
+        setError(null);
         const result = await fetchAPOD(date);
         setData(result);
       } catch (err) {
+        console.error("useAPOD error:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -31,17 +33,20 @@ export const useAPODRange = (startDate, endDate) => {
 
   useEffect(() => {
     const fetch = async () => {
+      if (!startDate || !endDate) return;
       try {
         setLoading(true);
+        setError(null);
         const result = await fetchAPODRange(startDate, endDate);
         setData(Array.isArray(result) ? result.reverse() : [result]);
       } catch (err) {
+        console.error("useAPODRange error:", err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-    if (startDate && endDate) fetch();
+    fetch();
   }, [startDate, endDate]);
 
   return { data, loading, error };
@@ -56,6 +61,7 @@ export const useNEO = (days = 7) => {
     const fetch = async () => {
       try {
         setLoading(true);
+        setError(null);
         const end = new Date();
         const start = new Date();
         start.setDate(start.getDate() - days);
@@ -63,14 +69,15 @@ export const useNEO = (days = 7) => {
         const format = (d) => d.toISOString().split("T")[0];
         const result = await fetchNearEarthObjects(format(start), format(end));
         
-        const all = Object.values(result.near_earth_objects).flat();
+        const all = Object.values(result.near_earth_objects || {}).flat();
         const sorted = all.sort((a, b) => 
-          new Date(a.close_approach_data[0].epoch_date_close_approach) - 
-          new Date(b.close_approach_data[0].epoch_date_close_approach)
+          new Date(a.close_approach_data?.[0]?.epoch_date_close_approach || 0) - 
+          new Date(b.close_approach_data?.[0]?.epoch_date_close_approach || 0)
         );
         
         setData(sorted);
       } catch (err) {
+        console.error("useNEO error:", err);
         setError(err.message);
       } finally {
         setLoading(false);
