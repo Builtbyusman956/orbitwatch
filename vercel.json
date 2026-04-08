@@ -1,5 +1,6 @@
 {
-  "rewrites": [
-    { "source": "/((?!ads.txt).*)", "destination": "/index.html" }
+  "routes": [
+    { "src": "/ads.txt", "dest": "/ads.txt" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
